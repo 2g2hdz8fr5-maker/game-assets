@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>爱给网素材一键下载</title>
+<style>
+  body { font-family: Microsoft YaHei, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #1a1a1a; color: #eee; }
+  h1 { color: #e67e22; }
+  .pack { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .pack h3 { margin: 0 0 8px 0; color: #d4a847; }
+  .pack p { margin: 4px 0; color: #999; font-size: 13px; }
+  button { background: #c23616; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 8px 4px 0 0; }
+  button:hover { background: #e04a2a; }
+  button.done { background: #27ae60; }
+  #log { background: #111; padding: 12px; border-radius: 6px; margin-top: 20px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+  .note { background: #2a2a0a; border: 1px solid #d4a847; padding: 12px; border-radius: 6px; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<h1>📦 爱给网素材一键下载器</h1>
+
+<div class="note">
+  <strong>使用说明：</strong><br>
+  1. 先在浏览器打开 <a href="https://www.aigei.com" target="_blank" style="color:#e67e22">爱给网</a> 并登录你的账号<br>
+  2. 登录后回来点击下方按钮，每次下载一个包<br>
+  3. 下载完成后按钮会变绿
+</div>
+
+<div id="packs"></div>
+<div id="log"></div>
+
+<script>
+const PACKS = [
+  { id: 'q-ancient-army', name: 'Q版古代军队塔防资源', url: 'https://www.aigei.com/set/qbanzhongguogudaijun.html', desc: '581张PNG | 27MB | 箭塔/投石机/长枪兵/将领/地图' },
+  { id: 'ink-bg', name: '中式古典水墨游戏背景', url: 'https://www.aigei.com/set/zhongshigudianshuimo.html', desc: '43张水墨风背景 | JPG | 最高8889px' },
+  { id: 'td-ui', name: '2D帝国塔防UI元素专辑', url: 'https://www.aigei.com/set/2dyouxidiguotafang_u.html', desc: '1525+张UI | 按钮/旗帜/图标/技能面板' },
+  { id: 'pixel-wulin', name: '像素武林题材塔防素材', url: 'https://www.aigei.com/view/72327-43060330.html', desc: '99张PNG | 武侠像素风 | 城楼/刀兵/关羽/曹操' }
+];
+
+function log(msg) {
+  const logEl = document.getElementById('log');
+  logEl.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function downloadPack(pack, btn) {
+  log('开始下载: ' + pack.name);
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = pack.url;
+  iframe.onload = () => {
+    setTimeout(() => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const zipBtn = doc.querySelector('[ftype="resc_zip"]');
+        if (zipBtn && typeof iframe.contentWindow.fileGet === 'function') {
+          iframe.contentWindow.fileGet(zipBtn, 'down');
+          log('✅ 已触发下载: ' + pack.name);
+          log('   (如果浏览器没有开始下载，请检查是否已登录爱给网)');
+          btn.classList.add('done');
+          btn.textContent = '✅ 已触发';
+        } else {
+          // Try clicking
+          if (zipBtn) zipBtn.click();
+          log('⚠️ 尝试点击下载: ' + pack.name);
+          log('   (请查看是否有下载弹窗)');
+          btn.classList.add('done');
+          btn.textContent = '⚠️ 请查看';
+        }
+      } catch(e) {
+        log('❌ 失败: ' + pack.name + ' - ' + e.message);
+        log('   请确保已在爱给网登录，然后手动打开: ' + pack.url);
+      }
+      setTimeout(() => document.body.removeChild(iframe), 3000);
+    }, 3000);
+  };
+  document.body.appendChild(iframe);
+}
+
+// Render pack buttons
+const packsDiv = document.getElementById('packs');
+PACKS.forEach(pack => {
+  const div = document.createElement('div');
+  div.className = 'pack';
+  div.innerHTML = '<h3>' + pack.name + '</h3><p>' + pack.desc + '</p>';
+  const btn = document.createElement('button');
+  btn.textContent = '📥 下载';
+  btn.onclick = () => downloadPack(pack, btn);
+  div.appendChild(btn);
+  packsDiv.appendChild(div);
+});
+
+log('下载器就绪，共 ' + PACKS.length + ' 个素材包');
+log('请确保已在爱给网登录！');
+</script>
+</body>
+</html>
